@@ -16,7 +16,7 @@ vi.mock("../../src/config/database", () => ({
       },
     },
     plan: {
-      findMany: async ({ orderBy, skip, take }: { orderBy: Record<string, "asc">[]; skip: number; take: number }) => {
+      findMany: async ({ orderBy, skip = 0, take = Infinity }: { orderBy: Record<string, "asc">[]; skip?: number; take?: number }) => {
         const keys = orderBy.map((o) => Object.keys(o)[0]);
         const sorted = [...db.plans].sort((a: Row, b: Row) => {
           for (const k of keys) if (a[k] !== b[k]) return a[k] < b[k] ? -1 : 1;
@@ -146,9 +146,16 @@ describe("reading one plan", () => {
 });
 
 describe("listing plans", () => {
-  it("defaults to the first page in the customer-list response shape", async () => {
+  it("returns every plan without paging, for selection lists", async () => {
     for (let i = 0; i < 25; i += 1) seed({ name: `Plan ${String(i).padStart(2, "0")}` });
     const res = await request(app).get(url).set(as("staff")).expect(200);
+    expect(res.body.data).toHaveLength(25);
+    expect(res.body.total).toBeUndefined();
+  });
+
+  it("uses the default page size once paging is requested", async () => {
+    for (let i = 0; i < 25; i += 1) seed({ name: `Plan ${String(i).padStart(2, "0")}` });
+    const res = await request(app).get(`${url}?page=1`).set(as("staff")).expect(200);
     expect(res.body).toMatchObject({ total: 25, page: 1, limit: 20 });
     expect(res.body.data).toHaveLength(20);
     expect(res.body.data[0].name).toBe("Plan 00");

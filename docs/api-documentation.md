@@ -6,7 +6,7 @@ Send `Authorization: Bearer <token>` on everything except the public auth routes
 
 **Formats:** dates are `YYYY-MM-DD`. Money is integer paise, so ₹1,000 is `100000`. Tax rates and percentage discounts are basis points, so 18% is `1800`.
 
-**Lists:** paginated lists take `page` and `limit` (maximum 100) and return `{ data, total, page, limit }`. Lists of catalogue and setup records return all rows as `{ data }`, except `/plans`, which is paginated.
+**Lists:** paginated lists take `page` and `limit` (maximum 100) and return `{ data, total, page, limit }`. Lists of catalogue and setup records return all rows as `{ data }`. `/products` and `/plans` also accept `page` or `limit` to paginate.
 
 **Errors:** every error returns `{ "message": "..." }`.
 
@@ -63,8 +63,8 @@ Team can read these. Only the admin can change them.
 | POST | `/products/:id/variants` | `attribute, value, extraPriceMinor` |
 | PATCH | `/products/:id/variants/:variantId` | `attribute?, value?, extraPriceMinor?`; existing subscription lines keep their price |
 | DELETE | `/products/:id/variants/:variantId` | 409 if a subscription line uses the variant |
-| GET, POST | `/plans` | `name, priceMinor, interval, minQuantity, availableFrom, availableUntil?, autoClose, closable, pausable, renewable` |
-| GET, PATCH | `/plans/:id` | |
+| GET, POST | `/plans` | List filters `q, interval, active`; paginated when `page` or `limit` is given, otherwise returns all matches. Body: `name, priceMinor, interval, minQuantity, availableFrom, availableUntil?, autoClose, closable, pausable, renewable` |
+| GET, PATCH | `/plans/:id` | GET includes `_count` of subscriptions and templates. PATCH refuses a changed `interval` with 409 |
 | GET, POST | `/taxes` | `name, rateBp, productType?` |
 | PATCH | `/taxes/:id` | |
 | GET, POST | `/discounts` | `name, type, value, minPurchaseMinor, minQuantity, startDate, endDate, usageLimit?, productIds` |
