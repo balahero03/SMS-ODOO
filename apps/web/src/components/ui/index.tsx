@@ -81,7 +81,7 @@ export interface Column<T> {
   align?: "right";
 }
 
-export function Table<T extends { id?: string }>({ columns, rows, empty = "Nothing here yet." }: { columns: Column<T>[]; rows?: T[]; empty?: string }) {
+export function Table<T>({ columns, rows, empty = "Nothing here yet." }: { columns: Column<T>[]; rows?: T[]; empty?: string }) {
   if (!rows) return <p className="py-6 text-center text-sm text-slate-500">Loading…</p>;
   if (!rows.length) return <p className="py-6 text-center text-sm text-slate-500">{empty}</p>;
   return (
@@ -98,7 +98,7 @@ export function Table<T extends { id?: string }>({ columns, rows, empty = "Nothi
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr key={row.id ?? i} className="border-b border-slate-100 last:border-0">
+            <tr key={(row as { id?: string }).id ?? i} className="border-b border-slate-100 last:border-0">
               {columns.map((c) => (
                 <td key={c.header} className={`px-2 py-2 ${c.align === "right" ? "text-right tabular-nums" : ""}`}>
                   {c.cell(row)}
@@ -130,7 +130,7 @@ export const ErrorText = ({ error }: { error: unknown }) =>
   error ? <p role="alert" className="text-sm text-red-700">{error instanceof Error ? error.message : String(error)}</p> : null;
 
 /** A mutation that refreshes all cached data on success, since most writes touch several screens. */
-export function useAction<V = void>(fn: (vars: V) => Promise<unknown>, onDone?: (result: any) => void) {
+export function useAction<V = void, R = any>(fn: (vars: V) => Promise<R>, onDone?: (result: R) => void) {
   const client = useQueryClient();
   return useMutation({
     mutationFn: fn,
