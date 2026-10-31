@@ -16,7 +16,7 @@ const intervals = z.enum(["DAILY", "WEEKLY", "MONTHLY", "YEARLY"]);
 const MAX_INT = 2_147_483_647;
 const fields = z.object({
   name: z.string().trim().min(1).max(200),
-  priceMinor: z.number().int().min(0).max(MAX_INT),
+  priceMinor: z.number().int().min(0).max(MAX_INT, "That price is too large"),
   interval: intervals,
   minQuantity: z.number().int().min(1).max(MAX_INT).default(1),
   availableFrom: dateSchema,

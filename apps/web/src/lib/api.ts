@@ -18,9 +18,9 @@ export async function api<T = any>(path: string, options: { method?: string; bod
   if (res.status === 204) return undefined as T;
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    if (res.status === 401 && token) {
-      // A slow reply for an old session mustn't sign out a newer one.
-      if (getToken() === token) setToken(null);
+    // A slow reply for an old session mustn't sign out or redirect a newer one.
+    if (res.status === 401 && token && getToken() === token) {
+      setToken(null);
       // /auth calls handle this themselves, so a stale session can't pull someone off a reset link.
       if (!path.startsWith("/auth/")) window.location.assign("/login");
     }

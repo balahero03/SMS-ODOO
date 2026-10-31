@@ -65,6 +65,10 @@ describe("creating a customer", () => {
 
   it("refuses missing and invalid fields", async () => {
     expect((await create({ name: " " })).status).toBe(400);
+    expect((await create({ phone: "-------" })).status).toBe(400);
+    expect((await create({ phone: "+(((((((" })).status).toBe(400);
+    expect((await create({ phone: "123-45 6" })).status).toBe(400);
+    expect((await create({ phone: "(020) 1234567" })).status).toBe(201);
     expect((await create({ name: undefined })).status).toBe(400);
     expect((await create({ email: undefined })).status).toBe(400);
     expect((await create({ email: "nope" })).status).toBe(400);

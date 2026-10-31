@@ -62,6 +62,11 @@ describe("creating products", () => {
   it("accepts the largest price the column can hold", async () => {
     expect((await create({ salesPriceMinor: 2_147_483_647 })).status).toBe(201);
   });
+
+  it("explains an oversized price without exposing the column's limit", async () => {
+    const res = await create({ salesPriceMinor: 2_147_483_648 });
+    expect(res.body.message).toBe("salesPriceMinor: That price is too large");
+  });
 });
 
 describe("listing and reading products", () => {

@@ -8,8 +8,9 @@ import { customerName, date, money, planName, today } from "../../../lib/format"
 import { formValues, readable } from "../../../lib/form";
 
 const link = "font-semibold text-[#5b3fe8] hover:underline";
-// Mirrors the phone rule in the API, which stays the final check.
-const phoneInput = { type: "tel", pattern: "\\+?[0-9 ()\\-]{7,20}", title: "7 to 20 digits, spaces, brackets or dashes, with an optional leading +" };
+// Mirrors the phone rule in the API, which stays the final check. Browsers ignore a pattern that's
+// invalid under the regex v flag, which requires brackets and dashes in a character class to be escaped.
+const phoneInput = { type: "tel", pattern: "(?=(?:\\D*\\d){7})\\+?[0-9 \\(\\)\\-]{7,20}", title: "At least 7 digits. Spaces, brackets, dashes and a leading + are fine, up to 20 characters" };
 
 export function Customers() {
   const [q, setQ] = useState("");

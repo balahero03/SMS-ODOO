@@ -22,7 +22,7 @@ const details = {
   phone: z
     .string()
     .trim()
-    .regex(/^(\+?[0-9 ()-]{7,20})?$/, "Enter a valid phone number")
+    .regex(/^((?=(?:\D*\d){7})\+?[0-9 ()-]{7,20})?$/, "Enter a valid phone number")
     .nullish()
     .transform(blankToNull),
   address: z.string().trim().max(500).nullish().transform(blankToNull),

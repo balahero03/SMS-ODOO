@@ -12,7 +12,7 @@ productsRoutes.use(authenticate, team);
 
 const types = z.enum(["SOFTWARE", "ADDON", "SERVICE"]);
 // Prices are stored in a 32-bit integer column.
-const money = z.number().int().min(0).max(2_147_483_647);
+const money = z.number().int().min(0).max(2_147_483_647, "That price is too large");
 const productSchema = z.object({
   name: z.string().trim().min(1).max(200),
   type: types,

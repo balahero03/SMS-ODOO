@@ -54,6 +54,8 @@ describe("creating plans", () => {
   it("allows a zero fee, and the largest the column can hold", async () => {
     expect((await create({ priceMinor: 0 })).status).toBe(201);
     expect((await create({ priceMinor: 2_147_483_647 })).status).toBe(201);
+    const oversized = await create({ priceMinor: 2_147_483_648 });
+    expect(oversized.body.message).toBe("priceMinor: That price is too large");
   });
 
   it.each([
