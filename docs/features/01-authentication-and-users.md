@@ -9,7 +9,7 @@ Controls who can sign in and what each person can see and do.
 | Feature | Status | Note |
 | --- | --- | --- |
 | Registration with email and password | ✅ | Creates a customer account |
-| Login and logout | ✅ | Sessions last 12 hours |
+| Login and logout | ✅ | Sessions last 12 hours; logout ends them on all devices |
 | Password reset by email | ✅ | |
 | Admin, Staff and Customer roles | ✅ | |
 | Admin-only staff creation | ✅ | |
@@ -25,7 +25,8 @@ Controls who can sign in and what each person can see and do.
 **Password reset:**
 - The link arrives at the registered email and works for one hour, once.
 - The response is the same whether or not the email has an account, so the form can't be used to find out who has one.
-- Resetting a password signs that user out everywhere.
+- Resetting a password signs that user out everywhere and cancels their other reset links.
+- Reset links are never stored: `EmailLog` keeps a redacted copy.
 
 **Accounts created by someone else:** staff and team-created customers receive a link, valid for 72 hours, to set their own password.
 

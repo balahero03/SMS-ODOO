@@ -2,7 +2,7 @@ import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { app } from "../../src/app";
 import { prisma } from "../../src/config/database";
-import { hashPassword } from "../../src/modules/auth/auth.service";
+import { hashPassword, issueResetLink } from "../../src/modules/auth/auth.service";
 import { billSubscription, runBilling } from "../../src/modules/billing/billing.service";
 
 const api = "/api/v1";
@@ -72,8 +72,9 @@ describe("accounts", () => {
   it("resets a password with a single-use link and revokes old sessions", async () => {
     const c = await signup();
     await request(app).post(`${api}/auth/forgot-password`).send({ email: c.email }).expect(200);
-    const mail = await prisma.emailLog.findFirstOrThrow({ where: { to: c.email }, orderBy: { createdAt: "desc" } });
-    const token = /token=(\w+)/.exec(mail.body)![1];
+    // EmailLog no longer keeps raw tokens; auth.test.ts covers the emailed link itself.
+    const user = await prisma.user.findUniqueOrThrow({ where: { email: c.email } });
+    const token = /token=(\w+)/.exec(await issueResetLink(user.id))![1];
     await request(app).post(`${api}/auth/reset-password`).send({ token, password: "N3w@Password" }).expect(200);
     await request(app).post(`${api}/auth/reset-password`).send({ token, password: "N3w@Password2" }).expect(400);
     await request(app).get(`${api}/auth/me`).set(as(c.token)).expect(401);

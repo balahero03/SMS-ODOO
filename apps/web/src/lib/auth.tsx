@@ -16,6 +16,7 @@ interface AuthState {
   loading: boolean;
   signIn: (result: { token: string; user: User }) => void;
   signOut: () => void;
+  clearSession: () => void;
 }
 
 const AuthContext = createContext<AuthState>(null as never);
@@ -30,7 +31,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!getToken()) return;
     api("/auth/me")
       .then((r) => setUser(r.user))
-      .catch(() => setToken(null))
+      // api() drops the token on a 401. Keep it through an outage, so a refresh later restores the session.
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
@@ -39,10 +41,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     client.clear();
     setUser(user);
   };
-  const signOut = () => {
+  const clearSession = () => {
     setToken(null);
     client.clear();
     setUser(null);
   };
-  return <AuthContext.Provider value={{ user, loading, signIn, signOut }}>{children}</AuthContext.Provider>;
+  const signOut = () => {
+    // api() reads the token before this returns. If the call fails, the token still expires on schedule.
+    api("/auth/logout", { body: {} }).catch(() => {});
+    clearSession();
+  };
+  return <AuthContext.Provider value={{ user, loading, signIn, signOut, clearSession }}>{children}</AuthContext.Provider>;
 }

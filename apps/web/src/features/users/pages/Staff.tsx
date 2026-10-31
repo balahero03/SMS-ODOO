@@ -8,7 +8,10 @@ import { formValues } from "../../../lib/form";
 export function Staff() {
   const [q, setQ] = useState("");
   const { data, error } = useQuery({ queryKey: ["staff"], queryFn: () => api("/users/staff") });
-  const create = useAction((body: object) => api("/users/staff", { body }));
+  const [notice, setNotice] = useState("");
+  const create = useAction((body: object) => api("/users/staff", { body }), (u) =>
+    setNotice(u.inviteSent ? `${u.name} was added. They've been sent a link to set their password.` : `${u.name} was added, but the email couldn't be sent. Ask them to use Forgot password.`),
+  );
   const toggle = useAction((u: any) => api(`/users/staff/${u.id}`, { method: "PATCH", body: { active: !u.active } }));
   const needle = q.trim().toLowerCase();
   const rows = (data?.data as any[] | undefined)?.filter((u) => u.name.toLowerCase().includes(needle) || u.email.toLowerCase().includes(needle));
@@ -20,10 +23,11 @@ export function Staff() {
             <Field label="Name"><Input name="name" required /></Field>
             <Field label="Email" hint="They get a link to set their password. It lasts 72 hours, and after that they can use Forgot password."><Input name="email" type="email" required /></Field>
             <div className="md:col-span-2"><ErrorText error={create.error} /></div>
-            <div><Button type="submit" disabled={create.isPending}>Save</Button></div>
+            <div><Button type="submit" disabled={create.isPending}>{create.isPending ? "Saving…" : "Save"}</Button></div>
           </form>
         )}
       </Toggle>
+      {notice && <p role="status" className="text-sm text-slate-700">{notice}</p>}
       <Card>
         <div className="mb-3 w-64"><Input aria-label="Search staff" placeholder="Search name or email" value={q} onChange={(e) => setQ(e.target.value)} /></div>
         <ErrorText error={error ?? toggle.error} />

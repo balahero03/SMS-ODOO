@@ -28,6 +28,7 @@ Send `Authorization: Bearer <token>` on everything except the public auth routes
 | POST | `/auth/login` | Public | `email, password` |
 | POST | `/auth/forgot-password` | Public | `email` |
 | POST | `/auth/reset-password` | Public | `token, password` |
+| POST | `/auth/logout` | All | Ends all of the user's sessions; returns 204 |
 | GET | `/auth/me` | All | |
 
 Passwords need more than eight characters, with an uppercase letter, a lowercase letter and a special character.
@@ -43,7 +44,7 @@ curl -X POST localhost:4000/api/v1/auth/login \
 | Method | Path | Access | Notes |
 | --- | --- | --- | --- |
 | GET | `/users/staff` | Admin | |
-| POST | `/users/staff` | Admin | `name, email`; emails a link to set a password |
+| POST | `/users/staff` | Admin | `name, email`; emails a link to set a password; the response includes `inviteSent` |
 | PATCH | `/users/staff/:id` | Admin | `active` |
 | GET | `/customers` | Team | Paginated; filter `q` |
 | POST | `/customers` | Team | `name, email, companyName?, phone?, address?` |

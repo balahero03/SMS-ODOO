@@ -42,6 +42,11 @@ export async function login(email: string, password: string) {
   return { token: sign(user), user: publicUser(user, user.customer?.id ?? null) };
 }
 
+// Tokens carry the version they were issued at, so this ends every session the user has.
+export async function logout(userId: string) {
+  await prisma.user.update({ where: { id: userId }, data: { tokenVersion: { increment: 1 } } });
+}
+
 export async function issueResetLink(userId: string, hours = 1) {
   const token = randomBytes(32).toString("hex");
   await prisma.passwordResetToken.create({
@@ -66,6 +71,11 @@ export async function resetPassword(token: string, password: string) {
       data: { usedAt: new Date() },
     });
     if (claimed.length !== 1) throw badRequest("This reset link is invalid or has expired");
+    // Any other link still in an inbox stops working along with the old password.
+    await tx.passwordResetToken.updateMany({
+      where: { userId: claimed[0].userId, usedAt: null },
+      data: { usedAt: new Date() },
+    });
     await tx.user.update({
       where: { id: claimed[0].userId },
       data: { passwordHash, tokenVersion: { increment: 1 } },

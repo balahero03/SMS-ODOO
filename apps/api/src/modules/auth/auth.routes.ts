@@ -23,7 +23,9 @@ authRoutes.post("/login", limiter, async (req, res) => {
 });
 
 authRoutes.post("/forgot-password", limiter, async (req, res) => {
-  await auth.forgotPassword(forgotSchema.parse(req.body).email);
+  const { email } = forgotSchema.parse(req.body);
+  // Not awaited, so response time and failures can't reveal whether the account exists.
+  void auth.forgotPassword(email).catch((err) => console.error("Password reset email failed", err));
   res.json({ message: "If that email has an account, a reset link is on its way" });
 });
 
@@ -31,6 +33,11 @@ authRoutes.post("/reset-password", limiter, async (req, res) => {
   const { token, password } = resetSchema.parse(req.body);
   await auth.resetPassword(token, password);
   res.json({ message: "Password updated" });
+});
+
+authRoutes.post("/logout", authenticate, async (req, res) => {
+  await auth.logout(req.user.id);
+  res.status(204).end();
 });
 
 authRoutes.get("/me", authenticate, (req, res) => {
