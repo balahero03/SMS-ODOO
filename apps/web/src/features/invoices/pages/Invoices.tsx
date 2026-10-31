@@ -15,10 +15,11 @@ export function Invoices() {
   const filter = params.get("overdue") === "true" ? "OVERDUE" : (params.get("status") ?? "");
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
+  const [range, setRange] = useState({ from: "", to: "" });
   const query = filter === "OVERDUE" ? { overdue: "true" } : { status: filter };
   const { data, error } = useQuery({
-    queryKey: ["invoices", filter, q, page],
-    queryFn: () => api(`/invoices${qs({ ...query, q, page })}`),
+    queryKey: ["invoices", filter, q, page, range],
+    queryFn: () => api(`/invoices${qs({ ...query, q, page, ...range })}`),
   });
   const confirmAll = useAction(() => api("/invoices/confirm-drafts", { body: {} }));
   const options = ["DRAFT", "CONFIRMED", "OVERDUE", "PAID", "CANCELLED"].filter((s) => !isCustomer || s !== "DRAFT");
@@ -31,7 +32,7 @@ export function Invoices() {
       <ErrorText error={confirmAll.error} />
       {!!confirmAll.data && <p className="text-sm text-slate-700">{(confirmAll.data as any).confirmed} invoices confirmed.</p>}
       <Card>
-        <div className="mb-3 flex flex-wrap gap-3">
+        <div className="mb-3 flex flex-wrap items-end gap-3">
           <div className="w-44">
             <Select aria-label="Status" value={filter} onChange={(e) => {
               setPage(1);
@@ -43,10 +44,12 @@ export function Invoices() {
             </Select>
           </div>
           <div className="w-56"><Input aria-label="Search by number" placeholder="Search by number" value={q} onChange={(e) => { setPage(1); setQ(e.target.value); }} /></div>
+          <div className="w-40"><Field label="Issued from"><Input type="date" value={range.from} onChange={(e) => { setPage(1); setRange({ ...range, from: e.target.value }); }} /></Field></div>
+          <div className="w-40"><Field label="Issued to"><Input type="date" value={range.to} onChange={(e) => { setPage(1); setRange({ ...range, to: e.target.value }); }} /></Field></div>
         </div>
         <ErrorText error={error} />
         <Table rows={data?.data as any[]} empty="No invoices match." columns={[
-          { header: "Invoice", cell: (i) => <Link className="text-indigo-700 hover:underline" to={`/invoices/${i.id}`}>{i.number}</Link> },
+          { header: "Invoice", cell: (i) => <Link className="font-semibold text-[#5b3fe8] hover:underline" to={`/invoices/${i.id}`}>{i.number}</Link> },
           ...(isCustomer ? [] : [{ header: "Customer", cell: (i: any) => i.billToName }]),
           { header: "Subscription", cell: (i) => i.subscription.number },
           { header: "Status", cell: (i) => <Status value={isOverdue(i) ? "OVERDUE" : i.status} /> },
@@ -122,7 +125,7 @@ export function InvoiceDetail() {
             <dt className="text-slate-500">Issued</dt><dd>{date(inv.issueDate)}</dd>
             <dt className="text-slate-500">Due</dt><dd>{date(inv.dueDate)}</dd>
             <dt className="text-slate-500">Period</dt><dd>{date(inv.periodStart)} to {date(inv.periodEnd)}</dd>
-            <dt className="text-slate-500">Subscription</dt><dd><Link className="text-indigo-700 hover:underline" to={`/subscriptions/${inv.subscription.id}`}>{inv.subscription.number}</Link></dd>
+            <dt className="text-slate-500">Subscription</dt><dd><Link className="font-semibold text-[#5b3fe8] hover:underline" to={`/subscriptions/${inv.subscription.id}`}>{inv.subscription.number}</Link></dd>
             {inv.sentAt && <><dt className="text-slate-500">Sent</dt><dd>{date(inv.sentAt)}</dd></>}
           </dl>
         </div>
