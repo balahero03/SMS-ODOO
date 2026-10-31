@@ -3,10 +3,8 @@ import { useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useAction } from "../../../components/ui";
 import { api, qs } from "../../../lib/api";
-import { label, money, percent, today } from "../../../lib/format";
+import { money, percent, planName, today } from "../../../lib/format";
 import { Badge, Btn, ConfirmDialog, control, DataTable, ErrorNote, invoiceBadge, PageTitle, Pages, Panel, prettyDate, SearchBox, subscriptionBadge, Tabs, textLink } from "../components";
-
-const planName = (plan: any) => (plan.name.toUpperCase() === plan.interval ? plan.name : `${plan.name} (${label(plan.interval)})`);
 
 export const PERIOD: Record<string, string> = { DAILY: "day", WEEKLY: "week", MONTHLY: "month", YEARLY: "year" };
 

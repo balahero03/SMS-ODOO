@@ -49,6 +49,30 @@ Admin and staff use the same sidebar as the customer portal, and shared buttons,
 
 Products, Plans, Quotation templates, Discounts and Taxes are **admin only in the app**. They're gone from the staff menu, and opening those URLs as staff goes to the dashboard. The API still lets staff read this data, because the New subscription and discount dropdowns need it.
 
+**Admin options:**
+
+| Page | What the admin can do |
+| --- | --- |
+| Products | Add, edit, retire, restore, manage variants, filter |
+| Plans | Add, edit rules and dates, retire, restore, filter |
+| Quotation templates | Add, edit, delete, search |
+| Discounts | Add, edit, filter by status, limit to products or apply to the whole subscription |
+| Taxes | Add, edit, turn on or off |
+| Staff | Add, deactivate, reactivate, search |
+
+Admin and staff can also:
+
+- Open a customer's page at `/customers/:id` to edit their details and see their subscriptions and invoices
+- Edit a draft subscription's dates, lines and prices
+- Choose the date when renewing
+- Filter invoices by issue date
+
+**Deliberate limits:**
+
+- **Plan billing interval:** it can't be edited after creation, because changing it on a live plan corrupts billing dates. Create a new plan instead.
+- **Editing a template:** the API has no template update, so the app creates the new version and then deletes the old one. If the delete fails, both copies remain.
+- **Future billing dates:** the billing run asks for confirmation first.
+
 ## How routing works
 
 `src/app/App.tsx` is the only existing file the portal changes. A small `ByRole` wrapper picks the screen, so `/subscriptions` shows the customer page to customers and the team page to everyone else. Customers land on `/overview` after signing in. Team users who open `/overview` go to the dashboard.
@@ -82,7 +106,8 @@ These need backend work to go away. The frontend works within them for now.
 ## Open issues
 
 - **Web packages:** `vite`, `@vitejs/plugin-react`, `tailwindcss`, `@tailwindcss/vite`, `@types/react` and `@types/react-dom` are missing from `apps/web/package.json`. A fresh clone can't start the frontend until they're added: `npm install -D -w web vite @vitejs/plugin-react tailwindcss @tailwindcss/vite @types/react @types/react-dom`
-- **Build:** `npm run build` also fails on existing type errors in `features/dashboard/pages/Dashboard.tsx` and `features/invoices/pages/Invoices.tsx`.
+- **Discount minimum quantity:** the backend counts a plan fee as one unit, so 9 seats plus a plan fee qualifies for a "10+ seats" discount.
+- **No backend support yet:** deleting products, plans, discounts or tax rules; editing a staff member's details or a customer's email; reversing a payment; listing subscriptions that are expiring soon; customers switching add-ons on and off.
 - **Demo data:** the demo customer's invoices are all drafts after seeding, so customers see none. Sign in as admin and use **Confirm all drafts** on the Invoices page before a demo.
 
 ## Not started

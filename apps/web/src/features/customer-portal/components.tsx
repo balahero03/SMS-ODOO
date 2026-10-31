@@ -3,14 +3,13 @@ import { useEffect, useRef, type ButtonHTMLAttributes, type InputHTMLAttributes,
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { api, qs } from "../../lib/api";
 import { useAuth } from "../../lib/auth";
-import { label, today } from "../../lib/format";
+import { date, label, today } from "../../lib/format";
 
 // Same look as the auth pages: one purple, lavender tints, cream ground, soft offset shadows.
 export const textLink = "font-semibold text-[#5b3fe8] hover:underline";
 export const control = "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:border-[#5b3fe8] focus:outline-2 focus:outline-[#5b3fe8]/30";
 
-export const prettyDate = (value?: string | null) =>
-  value ? new Date(value).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" }) : "—";
+export const prettyDate = date;
 
 export const isOverdue = (i: any) => i.status === "CONFIRMED" && i.dueDate.slice(0, 10) < today();
 

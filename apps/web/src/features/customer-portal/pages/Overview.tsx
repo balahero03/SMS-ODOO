@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../../../lib/auth";
-import { label, money } from "../../../lib/format";
+import { money, planName } from "../../../lib/format";
 import { Badge, DataTable, ErrorNote, invoiceBadge, Panel, prettyDate, Stat, subscriptionBadge, textLink, usePortalData } from "../components";
 
 const NEXT_STEPS = [
@@ -79,7 +79,7 @@ export function Overview() {
             empty="No subscriptions yet."
             columns={[
               { header: "Number", cell: (s: any) => <Link className={textLink} to={`/subscriptions/${s.id}`}>{s.number}</Link> },
-              { header: "Plan", wide: true, cell: (s: any) => `${s.plan.name}${s.plan.name.toUpperCase() === s.plan.interval ? "" : ` (${label(s.plan.interval)})`}` },
+              { header: "Plan", wide: true, cell: (s: any) => planName(s.plan) },
               { header: "Status", cell: (s: any) => <Badge value={subscriptionBadge(s)} /> },
             ]}
           />

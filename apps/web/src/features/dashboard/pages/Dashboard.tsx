@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Button, Card, ErrorText, Field, Input, Status, Table, useAction } from "../../../components/ui";
 import { api, qs } from "../../../lib/api";
 import { useAuth } from "../../../lib/auth";
-import { date, label, money } from "../../../lib/format";
+import { date, label, money, today } from "../../../lib/format";
 
 const textLink = "font-semibold text-[#5b3fe8] hover:underline";
 
@@ -12,7 +12,7 @@ function Stat({ title, value, note, to, alert }: { title: string; value: string;
   const body = (
     <div className="h-full rounded-2xl bg-white p-5 shadow-[6px_6px_0_#e4dfff] transition hover:shadow-[6px_6px_0_#c9c0fb]">
       <p className="text-sm text-slate-600">{title}</p>
-      <p className={`mt-1 text-xl font-extrabold tabular-nums tracking-tight xl:text-2xl ${alert ? "text-red-700" : "text-slate-950"}`}>{value}</p>
+      <p className={`mt-1 text-lg font-extrabold tabular-nums tracking-tight ${alert ? "text-red-700" : "text-slate-950"}`}>{value}</p>
       {note && <p className="mt-1 text-xs text-slate-500">{note}</p>}
     </div>
   );
@@ -140,14 +140,14 @@ export function Dashboard() {
           <div className="flex flex-wrap items-end gap-3">
             <div className="w-40"><Field label="Revenue from"><Input type="date" value={range.from} onChange={(e) => setRange({ ...range, from: e.target.value })} /></Field></div>
             <div className="w-40"><Field label="Revenue to"><Input type="date" value={range.to} onChange={(e) => setRange({ ...range, to: e.target.value })} /></Field></div>
-            <p className="pb-2 text-sm text-slate-600">Revenue collected and its charts cover {data.from} to {data.to}.</p>
+            <p className="pb-2 text-sm text-slate-600">Revenue collected and its charts cover {date(data.from)} to {date(data.to)}.</p>
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">
             <Card title="Revenue collected by month"><RevenueChart rows={data.revenueByMonth} /></Card>
             <Card title="Revenue by payment method">
               <Table rows={data.revenueByMethod as any[]} empty="No payments in this period." columns={[
-                { header: "Method", cell: (r: any) => (r.method === "UPI" ? "UPI" : label(r.method)) },
+                { header: "Method", cell: (r: any) => label(r.method) },
                 { header: "Collected", align: "right", cell: (r: any) => money(r.amountMinor) },
               ]} />
             </Card>
@@ -173,7 +173,7 @@ export function Dashboard() {
           <p className="mb-3 text-sm text-slate-600">Billing runs by itself every hour. Run it now, or pick a future date to rehearse a billing day. A future date creates real invoices.</p>
           <div className="flex flex-wrap items-end gap-3">
             <div className="w-40"><Field label="Bill as of"><Input type="date" value={asOf} onChange={(e) => setAsOf(e.target.value)} /></Field></div>
-            <Button disabled={run.isPending} onClick={() => run.mutate()}>{run.isPending ? "Running…" : "Run billing"}</Button>
+            <Button disabled={run.isPending} onClick={() => { if (!asOf || asOf <= today() || window.confirm(`Bill as of ${asOf}? This creates real invoices for every period up to that future date, and they can't be removed, only cancelled one by one.`)) run.mutate(); }}>{run.isPending ? "Running…" : "Run billing"}</Button>
           </div>
           {result && (
             <p className="mt-3 text-sm text-slate-700">

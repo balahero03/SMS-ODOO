@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth, type Role } from "../lib/auth";
 import { ForgotPassword, Login, ResetPassword, Signup } from "../features/auth/pages/Auth";
-import { Customers } from "../features/customers/pages/Customers";
+import { CustomerDetail, Customers } from "../features/customers/pages/Customers";
 import { Dashboard } from "../features/dashboard/pages/Dashboard";
 import { Discounts } from "../features/discounts/pages/Discounts";
 import { InvoiceDetail, Invoices } from "../features/invoices/pages/Invoices";
@@ -82,6 +82,7 @@ export function App() {
         <Route path="/invoices/:id" element={<ByRole team={<InvoiceDetail />} customer={<CustomerInvoiceDetail />} />} />
         <Route path="/payments" element={<ByRole team={<Payments />} customer={<CustomerPayments />} />} />
         <Route path="/customers" element={<Protected roles={TEAM}><Customers /></Protected>} />
+        <Route path="/customers/:id" element={<Protected roles={TEAM}><CustomerDetail /></Protected>} />
         <Route path="/products" element={<Protected roles={["ADMIN"]}><Products /></Protected>} />
         <Route path="/requests" element={<Protected roles={TEAM}><CustomerRequests /></Protected>} />
         <Route path="/plans" element={<ByRole team={<Protected roles={["ADMIN"]}><Plans /></Protected>} customer={<CustomerPlans />} />} />
