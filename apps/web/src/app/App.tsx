@@ -14,10 +14,18 @@ import { Staff } from "../features/users/pages/Staff";
 import { NewSubscription, SubscriptionDetail, Subscriptions } from "../features/subscriptions/pages/Subscriptions";
 import { Taxes } from "../features/taxes/pages/Taxes";
 import { Templates } from "../features/quotations/pages/Templates";
+import { CustomerRequests } from "../features/customer-requests/pages/CustomerRequests";
+import { CustomerShell } from "../features/customer-portal/components";
+import { CustomerPlans, RequestSubscription } from "../features/customer-portal/pages/BrowsePlans";
+import { CustomerInvoiceDetail, CustomerInvoices } from "../features/customer-portal/pages/Invoices";
+import { Overview } from "../features/customer-portal/pages/Overview";
+import { CustomerPayments } from "../features/customer-portal/pages/Payments";
+import { CustomerSubscriptionDetail, CustomerSubscriptions } from "../features/customer-portal/pages/Subscriptions";
 
 const nav: { to: string; label: string; roles: Role[] }[] = [
   { to: "/dashboard", label: "Dashboard", roles: ["ADMIN", "STAFF"] },
   { to: "/subscriptions", label: "Subscriptions", roles: ["ADMIN", "STAFF", "CUSTOMER"] },
+  { to: "/requests", label: "Customer requests", roles: ["ADMIN", "STAFF"] },
   { to: "/invoices", label: "Invoices", roles: ["ADMIN", "STAFF", "CUSTOMER"] },
   { to: "/payments", label: "Payments", roles: ["ADMIN", "STAFF"] },
   { to: "/customers", label: "Customers", roles: ["ADMIN", "STAFF"] },
@@ -59,7 +67,13 @@ function Shell() {
   );
 }
 
-const home = (role: Role) => (role === "CUSTOMER" ? "/subscriptions" : "/dashboard");
+const home = (role: Role) => (role === "CUSTOMER" ? "/overview" : "/dashboard");
+
+/** Customers get the portal's own screen at a URL the team also uses. */
+function ByRole({ team, customer }: { team: ReactNode; customer: ReactNode }) {
+  const { user } = useAuth();
+  return <>{user!.role === "CUSTOMER" ? customer : team}</>;
+}
 
 function Protected({ roles, children }: { roles?: Role[]; children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -84,17 +98,20 @@ export function App() {
       <Route path="/signup" element={<Public><Signup /></Public>} />
       <Route path="/forgot-password" element={<Public><ForgotPassword /></Public>} />
       <Route path="/reset-password" element={<ResetPassword />} />
-      <Route element={<Protected><Shell /></Protected>}>
+      <Route element={<Protected><ByRole team={<Shell />} customer={<CustomerShell />} /></Protected>}>
+        <Route path="/overview" element={<Protected roles={["CUSTOMER"]}><Overview /></Protected>} />
         <Route path="/dashboard" element={<Protected roles={TEAM}><Dashboard /></Protected>} />
-        <Route path="/subscriptions" element={<Subscriptions />} />
+        <Route path="/subscriptions" element={<ByRole team={<Subscriptions />} customer={<CustomerSubscriptions />} />} />
         <Route path="/subscriptions/new" element={<Protected roles={TEAM}><NewSubscription /></Protected>} />
-        <Route path="/subscriptions/:id" element={<SubscriptionDetail />} />
-        <Route path="/invoices" element={<Invoices />} />
-        <Route path="/invoices/:id" element={<InvoiceDetail />} />
-        <Route path="/payments" element={<Protected roles={TEAM}><Payments /></Protected>} />
+        <Route path="/subscriptions/:id" element={<ByRole team={<SubscriptionDetail />} customer={<CustomerSubscriptionDetail />} />} />
+        <Route path="/invoices" element={<ByRole team={<Invoices />} customer={<CustomerInvoices />} />} />
+        <Route path="/invoices/:id" element={<ByRole team={<InvoiceDetail />} customer={<CustomerInvoiceDetail />} />} />
+        <Route path="/payments" element={<ByRole team={<Payments />} customer={<CustomerPayments />} />} />
         <Route path="/customers" element={<Protected roles={TEAM}><Customers /></Protected>} />
         <Route path="/products" element={<Protected roles={TEAM}><Products /></Protected>} />
-        <Route path="/plans" element={<Protected roles={TEAM}><Plans /></Protected>} />
+        <Route path="/requests" element={<Protected roles={TEAM}><CustomerRequests /></Protected>} />
+        <Route path="/plans" element={<ByRole team={<Plans />} customer={<CustomerPlans />} />} />
+        <Route path="/plans/:id/request" element={<Protected roles={["CUSTOMER"]}><RequestSubscription /></Protected>} />
         <Route path="/templates" element={<Protected roles={TEAM}><Templates /></Protected>} />
         <Route path="/discounts" element={<Protected roles={TEAM}><Discounts /></Protected>} />
         <Route path="/taxes" element={<Protected roles={TEAM}><Taxes /></Protected>} />
