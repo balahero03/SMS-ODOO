@@ -5,7 +5,7 @@ import { prisma } from "../../config/database";
 import { authenticate } from "../../middleware/authenticate";
 import { adminOnly } from "../../middleware/authorize";
 import { sendEmail } from "../../integrations/email/email";
-import { badRequest, notFound } from "../../shared/errors/app-error";
+import { badRequest, conflict, notFound } from "../../shared/errors/app-error";
 import { emailSchema } from "../auth/auth.schema";
 import { hashPassword, issueResetLink } from "../auth/auth.service";
 
@@ -26,13 +26,14 @@ usersRoutes.get("/staff", async (_req, res) => {
 
 usersRoutes.post("/staff", async (req, res) => {
   const { name, email } = z.object({ name: z.string().trim().min(1), email: emailSchema }).parse(req.body);
+  if (await prisma.user.findUnique({ where: { email } })) throw conflict("That email already has an account");
   const user = await prisma.user.create({
     data: { name, email, role: "STAFF", passwordHash: await hashPassword(randomBytes(32).toString("hex")) },
     select,
   });
   const link = await issueResetLink(user.id, 72);
-  await sendEmail(email, "You've been added to Brightloop", `Set your password to get started:\n${link}`);
-  res.status(201).json(user);
+  const inviteSent = await sendEmail(email, "You've been added to Brightloop", `Set your password to get started:\n${link}`);
+  res.status(201).json({ ...user, inviteSent });
 });
 
 usersRoutes.patch("/staff/:id", async (req, res) => {
@@ -40,5 +41,7 @@ usersRoutes.patch("/staff/:id", async (req, res) => {
   if (req.params.id === req.user.id) throw badRequest("You can't deactivate your own account");
   const target = await prisma.user.findUnique({ where: { id: req.params.id } });
   if (!target || target.role !== "STAFF") throw notFound("Staff member");
-  res.json(await prisma.user.update({ where: { id: target.id }, data: { active }, select }));
+  // Bumping the version on deactivation stops old tokens working again after a reactivation.
+  const revoke = active ? {} : { tokenVersion: { increment: 1 } };
+  res.json(await prisma.user.update({ where: { id: target.id }, data: { active, ...revoke }, select }));
 });

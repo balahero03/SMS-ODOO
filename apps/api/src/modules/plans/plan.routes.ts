@@ -3,7 +3,9 @@ import { z } from "zod";
 import { prisma } from "../../config/database";
 import { authenticate } from "../../middleware/authenticate";
 import { adminOnly, team } from "../../middleware/authorize";
+import { badRequest, notFound } from "../../shared/errors/app-error";
 import { dateSchema } from "../../shared/utils/date";
+import { pageArgs, pageSchema } from "../../shared/utils/pagination";
 
 export const plansRoutes = Router();
 plansRoutes.use(authenticate, team);
@@ -25,8 +27,20 @@ const validDates = (p: { availableFrom?: Date; availableUntil?: Date | null }) =
   !p.availableFrom || !p.availableUntil || p.availableUntil >= p.availableFrom;
 const message = { message: "availableUntil must not be before availableFrom", path: ["availableUntil"] };
 
-plansRoutes.get("/", async (_req, res) => {
-  res.json({ data: await prisma.plan.findMany({ orderBy: { name: "asc" } }) });
+plansRoutes.get("/", async (req, res) => {
+  const query = pageSchema.parse(req.query);
+  const [data, total] = await Promise.all([
+    // id breaks ties so duplicate names can't repeat or vanish across pages.
+    prisma.plan.findMany({ orderBy: [{ name: "asc" }, { id: "asc" }], ...pageArgs(query) }),
+    prisma.plan.count(),
+  ]);
+  res.json({ data, total, page: query.page, limit: query.limit });
+});
+
+plansRoutes.get("/:id", async (req, res) => {
+  const plan = await prisma.plan.findUnique({ where: { id: String(req.params.id) } });
+  if (!plan) throw notFound("Plan");
+  res.json(plan);
 });
 
 plansRoutes.post("/", adminOnly, async (req, res) => {
@@ -39,5 +53,13 @@ plansRoutes.patch("/:id", adminOnly, async (req, res) => {
     Object.entries(fields.shape).map(([k, v]) => [k, (v instanceof z.ZodDefault ? v.removeDefault() : v).optional()]),
   ) as { [K in keyof typeof fields.shape]: z.ZodOptional<z.ZodTypeAny> };
   const data = z.object(shape).refine(validDates, message).parse(req.body);
-  res.json(await prisma.plan.update({ where: { id: String(req.params.id) }, data }));
+  const plan = await prisma.plan.findUnique({ where: { id: String(req.params.id) } });
+  if (!plan) throw notFound("Plan");
+  // A partial update must still leave a valid range with the stored dates. Null clears availableUntil.
+  const effective = {
+    availableFrom: data.availableFrom ?? plan.availableFrom,
+    availableUntil: data.availableUntil === undefined ? plan.availableUntil : data.availableUntil,
+  };
+  if (!validDates(effective)) throw badRequest(message.message);
+  res.json(await prisma.plan.update({ where: { id: plan.id }, data }));
 });

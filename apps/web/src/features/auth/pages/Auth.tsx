@@ -5,8 +5,6 @@ import { ErrorText, Field } from "../../../components/ui";
 import { api } from "../../../lib/api";
 import { useAuth } from "../../../lib/auth";
 
-const PASSWORD_HINT = "More than eight characters, with an uppercase letter, a lowercase letter and a special character.";
-
 const PURPLE = "#5b3fe8";
 const TINT = "#e4dfff";
 const TINT_MID = "#c9c0fb";
@@ -274,6 +272,9 @@ function values(e: FormEvent<HTMLFormElement>) {
   return Object.fromEntries(new FormData(e.currentTarget)) as Record<string, string>;
 }
 
+/** The API prefixes validation messages with the field name ("email: Invalid email"). */
+const readable = (error: Error | null) => error && error.message.replace(/(^|; )\w+: /g, "$1");
+
 export function Login() {
   const { signIn } = useAuth();
   const m = useMutation({ mutationFn: (body: object) => api("/auth/login", { body }), onSuccess: (result) => signIn(result) });
@@ -283,7 +284,7 @@ export function Login() {
         <Field label="Email address"><EmailInput placeholder="you@brightloop.com" /></Field>
         <Field label="Password"><PasswordInput name="password" placeholder="Enter your password" autoComplete="current-password" /></Field>
         <p className="text-right text-sm"><Link className={link} to="/forgot-password">Forgot password?</Link></p>
-        <ErrorText error={m.error} />
+        <ErrorText error={readable(m.error)} />
         <Submit disabled={m.isPending}>{m.isPending ? "Signing in…" : "Sign in →"}</Submit>
       </form>
       <p className="mt-6 text-center text-sm text-slate-600">Don't have an account? <Link className={link} to="/signup">Create account</Link></p>
@@ -325,7 +326,7 @@ export function Signup() {
           <Field label="Confirm password"><PasswordInput name="confirm" autoComplete="new-password" placeholder="Enter it again" value={confirm} onChange={(e) => setConfirm(e.target.value)} /></Field>
           {mismatch && <p className="mt-1 text-xs text-red-700">Those passwords don't match</p>}
         </div>
-        <ErrorText error={problem || m.error} />
+        <ErrorText error={problem || readable(m.error)} />
         <Submit disabled={m.isPending}>{m.isPending ? "Creating account…" : "Create account →"}</Submit>
       </form>
       <p className="mt-5 text-center text-sm text-slate-600">Already have an account? <Link className={link} to="/login">Sign in</Link></p>
@@ -342,8 +343,8 @@ export function ForgotPassword() {
       ) : (
         <form className="space-y-3.5" onSubmit={(e) => m.mutate(values(e))}>
           <Field label="Registered email"><EmailInput /></Field>
-          <ErrorText error={m.error} />
-          <Submit disabled={m.isPending}>Send reset link</Submit>
+          <ErrorText error={readable(m.error)} />
+          <Submit disabled={m.isPending}>{m.isPending ? "Sending…" : "Send reset link"}</Submit>
         </form>
       )}
       <p className="mt-5 text-center text-sm"><Link className={link} to="/login">Back to sign in</Link></p>
@@ -353,25 +354,43 @@ export function ForgotPassword() {
 
 export function ResetPassword() {
   const [params] = useSearchParams();
-  const [mismatch, setMismatch] = useState(false);
-  const m = useMutation({ mutationFn: (body: object) => api("/auth/reset-password", { body }) });
+  const { clearSession } = useAuth();
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [problem, setProblem] = useState("");
+  // A reset ends every session, including one open in this browser.
+  const m = useMutation({ mutationFn: (body: object) => api("/auth/reset-password", { body }), onSuccess: clearSession });
+  const token = params.get("token");
+  const newLink = <Link className={link} to="/forgot-password">Request a new link</Link>;
+  const mismatch = confirm !== "" && confirm !== password;
   return (
     <Frame title="Choose a new password">
-      {m.isSuccess ? (
+      {!token ? (
+        <p className="text-sm text-slate-700">This reset link is incomplete. {newLink}</p>
+      ) : m.isSuccess ? (
         <p className="text-sm text-slate-700">Password updated. <Link className={link} to="/login">Sign in</Link></p>
       ) : (
         <form
           className="space-y-3.5"
           onSubmit={(e) => {
-            const { password, confirm } = values(e);
-            setMismatch(password !== confirm);
-            if (password === confirm) m.mutate({ token: params.get("token"), password });
+            e.preventDefault();
+            if (!PASSWORD_RULES.every((r) => r.test(password))) return setProblem("Your password doesn't meet all the requirements yet");
+            setProblem("");
+            if (password !== confirm) return;
+            m.mutate({ token, password });
           }}
         >
-          <Field label="New password" hint={PASSWORD_HINT}><PasswordInput name="password" autoComplete="new-password" /></Field>
-          <Field label="Confirm password"><PasswordInput name="confirm" autoComplete="new-password" /></Field>
-          <ErrorText error={mismatch ? "Those passwords don't match" : m.error} />
-          <Submit disabled={m.isPending}>Update password</Submit>
+          <div>
+            <Field label="New password"><PasswordInput name="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} /></Field>
+            <PasswordChecklist password={password} />
+          </div>
+          <div>
+            <Field label="Confirm password"><PasswordInput name="confirm" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} /></Field>
+            {mismatch && <p className="mt-1 text-xs text-red-700">Those passwords don't match</p>}
+          </div>
+          <ErrorText error={problem || readable(m.error)} />
+          {m.isError && !problem && <p className="text-sm">{newLink}</p>}
+          <Submit disabled={m.isPending}>{m.isPending ? "Updating…" : "Update password"}</Submit>
         </form>
       )}
     </Frame>

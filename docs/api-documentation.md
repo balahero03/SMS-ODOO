@@ -6,7 +6,7 @@ Send `Authorization: Bearer <token>` on everything except the public auth routes
 
 **Formats:** dates are `YYYY-MM-DD`. Money is integer paise, so ₹1,000 is `100000`. Tax rates and percentage discounts are basis points, so 18% is `1800`.
 
-**Lists:** paginated lists take `page` and `limit` (maximum 100) and return `{ data, total, page, limit }`. Lists of catalogue and setup records return all rows as `{ data }`.
+**Lists:** paginated lists take `page` and `limit` (maximum 100) and return `{ data, total, page, limit }`. Lists of catalogue and setup records return all rows as `{ data }`, except `/plans`, which is paginated.
 
 **Errors:** every error returns `{ "message": "..." }`.
 
@@ -28,6 +28,7 @@ Send `Authorization: Bearer <token>` on everything except the public auth routes
 | POST | `/auth/login` | Public | `email, password` |
 | POST | `/auth/forgot-password` | Public | `email` |
 | POST | `/auth/reset-password` | Public | `token, password` |
+| POST | `/auth/logout` | All | Ends all of the user's sessions; returns 204 |
 | GET | `/auth/me` | All | |
 
 Passwords need more than eight characters, with an uppercase letter, a lowercase letter and a special character.
@@ -43,7 +44,7 @@ curl -X POST localhost:4000/api/v1/auth/login \
 | Method | Path | Access | Notes |
 | --- | --- | --- | --- |
 | GET | `/users/staff` | Admin | |
-| POST | `/users/staff` | Admin | `name, email`; emails a link to set a password |
+| POST | `/users/staff` | Admin | `name, email`; emails a link to set a password; the response includes `inviteSent` |
 | PATCH | `/users/staff/:id` | Admin | `active` |
 | GET | `/customers` | Team | Paginated; filter `q` |
 | POST | `/customers` | Team | `name, email, companyName?, phone?, address?` |
@@ -61,7 +62,7 @@ Team can read these. Only the admin can change them.
 | POST | `/products/:id/variants` | `attribute, value, extraPriceMinor` |
 | DELETE | `/products/:id/variants/:variantId` | |
 | GET, POST | `/plans` | `name, priceMinor, interval, minQuantity, availableFrom, availableUntil?, autoClose, closable, pausable, renewable` |
-| PATCH | `/plans/:id` | |
+| GET, PATCH | `/plans/:id` | |
 | GET, POST | `/taxes` | `name, rateBp, productType?` |
 | PATCH | `/taxes/:id` | |
 | GET, POST | `/discounts` | `name, type, value, minPurchaseMinor, minQuantity, startDate, endDate, usageLimit?, productIds` |
