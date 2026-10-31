@@ -40,7 +40,7 @@ function RevenueChart({ rows }: { rows: { month: string; amountMinor: number }[]
       </div>
       <details className="mt-2 text-sm">
         <summary className="cursor-pointer text-slate-600">Show as table</summary>
-        <Table rows={rows} columns={[
+        <Table rows={rows as any[]} columns={[
           { header: "Month", cell: (r) => r.month },
           { header: "Collected", align: "right", cell: (r) => money(r.amountMinor) },
         ]} />
@@ -100,7 +100,7 @@ export function Dashboard() {
             <div className="w-40"><Field label="Bill as of"><Input type="date" value={asOf} onChange={(e) => setAsOf(e.target.value)} /></Field></div>
             <Button disabled={run.isPending} onClick={() => run.mutate()}>{run.isPending ? "Running…" : "Run billing"}</Button>
           </div>
-          {run.data && (
+          {!!run.data && (
             <p className="mt-3 text-sm text-slate-700">
               {(run.data as any).billed} invoices created, {(run.data as any).closed} subscriptions closed, {(run.data as any).failed} failed.{" "}
               <Link className="text-indigo-700 hover:underline" to="/invoices?status=DRAFT">Review drafts</Link>

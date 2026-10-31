@@ -29,7 +29,7 @@ export function Invoices() {
       actions={!isCustomer && <Button variant="secondary" disabled={confirmAll.isPending} onClick={() => { if (window.confirm("Confirm every draft invoice?")) confirmAll.mutate(); }}>Confirm all drafts</Button>}
     >
       <ErrorText error={confirmAll.error} />
-      {confirmAll.data && <p className="text-sm text-slate-700">{(confirmAll.data as any).confirmed} invoices confirmed.</p>}
+      {!!confirmAll.data && <p className="text-sm text-slate-700">{(confirmAll.data as any).confirmed} invoices confirmed.</p>}
       <Card>
         <div className="mb-3 flex flex-wrap gap-3">
           <div className="w-44">
