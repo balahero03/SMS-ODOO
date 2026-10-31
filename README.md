@@ -47,6 +47,7 @@ apps/web/src/features  React pages, grouped by feature
 - [API documentation](docs/api-documentation.md)
 - [Billing workflow](docs/billing-workflow.md)
 - [Deployment](docs/deployment.md)
+- [Team work division](docs/team-work-division.md)
 
 ## Rules worth knowing
 
