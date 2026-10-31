@@ -9,13 +9,14 @@ The people and companies Brightloop bills.
 | Feature | Status | Note |
 | --- | --- | --- |
 | Create customers | ✅ | Admin and staff |
-| Update customers | 🟡 | API only |
+| Update customers | ✅ | |
+| Deactivate customers | ✅ | Admin only; refused while a subscription is open. Customers are never deleted, so their history stays |
 | Company details | ✅ | Company name and address |
 | Contact information | ✅ | Name, email, phone |
 | Search | ✅ | Name, company or email |
 | Filter by attribute | ⬜ | Search only |
-| Subscription and invoice history | 🟡 | API filters by customer; no customer page yet |
-| Payment history per customer | ⬜ | Payments are shown per invoice or across all customers |
+| Subscription and invoice history | ✅ | On the customer page |
+| Payment history per customer | ⬜ | Shown per invoice for now; waiting on the `GET /payments` filter below |
 
 ## Rules
 
@@ -34,3 +35,14 @@ Customers: paginated list, search and add customer.
 ## API
 
 `GET|POST /customers`, `GET|PATCH /customers/:id`, `GET /subscriptions?customerId=`, `GET /invoices?customerId=`
+
+## Needed from finance
+
+The customer page needs a customer filter on the payments list. Until it exists, the API ignores an unknown `customerId` and returns every customer's payments, so the page must not call it.
+
+`GET /payments?customerId=<id>`, added to the existing route and access (admin and staff):
+
+- **Filter:** `invoice: { customerId }` on the server, combined with the existing `from`, `to` and `method` filters and included in `total`.
+- **Unknown customer:** an empty list, `{ data: [], total: 0, page, limit }`.
+- **Response:** unchanged, `{ data, total, page, limit }`, each row with `id, method, amountMinor, paidOn, note, invoice: { id, number, billToName }`.
+- **Order:** unchanged, `paidOn` then `createdAt`, newest first.

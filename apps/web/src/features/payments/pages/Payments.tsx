@@ -27,7 +27,7 @@ export function Payments() {
         <ErrorText error={error} />
         <Table rows={data?.data as any[]} empty="No payments match." columns={[
           { header: "Date", cell: (p) => date(p.paidOn) },
-          { header: "Invoice", cell: (p) => <Link className="text-indigo-700 hover:underline" to={`/invoices/${p.invoice.id}`}>{p.invoice.number}</Link> },
+          { header: "Invoice", cell: (p) => <Link className="font-semibold text-[#5b3fe8] hover:underline" to={`/invoices/${p.invoice.id}`}>{p.invoice.number}</Link> },
           { header: "Customer", cell: (p) => p.invoice.billToName },
           { header: "Method", cell: (p) => label(p.method) },
           { header: "Note", cell: (p) => p.note ?? "—" },

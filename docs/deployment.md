@@ -16,7 +16,7 @@ Set these for both the API and the worker.
 | `JWT_SECRET` | API | At least 32 random characters. Use a new one in production: `openssl rand -hex 32` |
 | `WEB_ORIGIN` | API | Public web URL, used for CORS and email links |
 | `PORT` | No | API port, default 4000 |
-| `RESEND_API_KEY` | No | Without it, emails only go to the console and `EmailLog` |
+| `RESEND_API_KEY` | No | Without it, emails only go to the console and `EmailLog`, with reset links redacted, so password resets and invitations can't be used |
 | `EMAIL_FROM` | With Resend | Sender address on a verified domain |
 
 The values in the repository's `apps/api/.env` are for local development only. Don't reuse them in production.

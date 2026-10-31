@@ -26,7 +26,7 @@ Open http://localhost:5173. The password for all demo accounts is `Demo@12345`:
 
 Run the tests with `npm test`. They use a separate `sms_test` database, which is reset on each run.
 
-Without `RESEND_API_KEY`, emails, including password reset links, go to the API console and the `EmailLog` table.
+Without `RESEND_API_KEY`, emails go to the API console and the `EmailLog` table. Reset links appear in full only in the local development console; `EmailLog` and production logs keep a redacted copy.
 
 ## Layout
 

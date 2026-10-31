@@ -8,7 +8,9 @@ export const passwordSchema = z
   .max(72, "Password must be at most 72 characters")
   .regex(/[A-Z]/, "Password needs an uppercase letter")
   .regex(/[a-z]/, "Password needs a lowercase letter")
-  .regex(/[^A-Za-z0-9]/, "Password needs a special character");
+  .regex(/[^A-Za-z0-9]/, "Password needs a special character")
+  // bcrypt ignores everything past 72 bytes, and accented letters and emoji take more than one.
+  .refine((p) => Buffer.byteLength(p) <= 72, "Password is too long");
 
 export const signupSchema = z.object({
   name: z.string().trim().min(1),
