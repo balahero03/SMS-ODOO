@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: sms-postgres
+    environment:
+      POSTGRES_USER: sms
+      POSTGRES_PASSWORD: sms
+      POSTGRES_DB: sms
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - sms-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sms"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+volumes:
+  sms-pgdata:

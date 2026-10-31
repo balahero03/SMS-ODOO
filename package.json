@@ -1,0 +1,14 @@
+{
+  "name": "subscription-management",
+  "private": true,
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "db:up": "docker compose up -d --wait db",
+    "db:migrate": "npm run db:migrate -w api",
+    "db:seed": "npm run db:seed -w api",
+    "dev": "concurrently -n api,worker,web \"npm run dev -w api\" \"npm run dev -w worker\" \"npm run dev -w web\"",
+    "test": "npm test -w api",
+    "build": "npm run typecheck -w api && npm run typecheck -w worker && npm run build -w web"
+  },
+  "devDependencies": { "concurrently": "^9.0.0" }
+}
