@@ -4,6 +4,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { ErrorText, Field } from "../../../components/ui";
 import { api } from "../../../lib/api";
 import { useAuth } from "../../../lib/auth";
+import { readable } from "../../../lib/form";
 
 const PURPLE = "#5b3fe8";
 const TINT = "#e4dfff";
@@ -271,9 +272,6 @@ function values(e: FormEvent<HTMLFormElement>) {
   e.preventDefault();
   return Object.fromEntries(new FormData(e.currentTarget)) as Record<string, string>;
 }
-
-/** The API prefixes validation messages with the field name ("email: Invalid email"). */
-const readable = (error: Error | null) => error && error.message.replace(/(^|; )\w+: /g, "$1");
 
 export function Login() {
   const { signIn } = useAuth();

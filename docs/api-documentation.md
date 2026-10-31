@@ -47,9 +47,10 @@ curl -X POST localhost:4000/api/v1/auth/login \
 | POST | `/users/staff` | Admin | `name, email`; emails a link to set a password; the response includes `inviteSent` |
 | PATCH | `/users/staff/:id` | Admin | `active` |
 | GET | `/customers` | Team | Paginated; filter `q` |
-| POST | `/customers` | Team | `name, email, companyName?, phone?, address?` |
+| POST | `/customers` | Team | `name, email, companyName?, phone?, address?`; the response includes `inviteSent` |
 | GET | `/customers/:id` | Team | |
 | PATCH | `/customers/:id` | Team | |
+| PATCH | `/customers/:id/access` | Admin | `active`; ends sessions when deactivating; 409 while a subscription is open. Customers are never deleted |
 
 ## Catalogue
 

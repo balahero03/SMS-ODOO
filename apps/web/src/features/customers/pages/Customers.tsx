@@ -3,16 +3,22 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Button, Card, ErrorText, Field, FormDialog, Input, Page, Pager, Status, Table, Toggle, useAction } from "../../../components/ui";
 import { api, qs } from "../../../lib/api";
+import { useAuth } from "../../../lib/auth";
 import { customerName, date, money, planName, today } from "../../../lib/format";
-import { formValues } from "../../../lib/form";
+import { formValues, readable } from "../../../lib/form";
 
 const link = "font-semibold text-[#5b3fe8] hover:underline";
+// Mirrors the phone rule in the API, which stays the final check.
+const phoneInput = { type: "tel", pattern: "\\+?[0-9 ()\\-]{7,20}", title: "7 to 20 digits, spaces, brackets or dashes, with an optional leading +" };
 
 export function Customers() {
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
   const { data, error } = useQuery({ queryKey: ["customers", q, page], queryFn: () => api(`/customers${qs({ q, page })}`) });
-  const create = useAction((body: object) => api("/customers", { body }));
+  const [notice, setNotice] = useState("");
+  const create = useAction((body: object) => api("/customers", { body }), (c) =>
+    setNotice(c.inviteSent ? `${c.user.name} was added. They've been sent a link to set a portal password.` : `${c.user.name} was added, but the email couldn't be sent. Ask them to use Forgot password.`),
+  );
   return (
     <Page title="Customers">
       <Toggle label="Add customer">
@@ -21,13 +27,14 @@ export function Customers() {
             <Field label="Contact name"><Input name="name" required /></Field>
             <Field label="Email" hint="They get a link to set a portal password."><Input name="email" type="email" required /></Field>
             <Field label="Company"><Input name="companyName" /></Field>
-            <Field label="Phone"><Input name="phone" /></Field>
+            <Field label="Phone"><Input name="phone" {...phoneInput} /></Field>
             <Field label="Address"><Input name="address" /></Field>
-            <div className="md:col-span-2"><ErrorText error={create.error} /></div>
-            <div><Button type="submit" disabled={create.isPending}>Save</Button></div>
+            <div className="md:col-span-2"><ErrorText error={readable(create.error)} /></div>
+            <div><Button type="submit" disabled={create.isPending}>{create.isPending ? "Saving…" : "Save"}</Button></div>
           </form>
         )}
       </Toggle>
+      {notice && <p role="status" className="text-sm text-slate-700">{notice}</p>}
       <Card>
         <div className="mb-3 w-72"><Input aria-label="Search customers" placeholder="Search name, company or email" value={q} onChange={(e) => { setPage(1); setQ(e.target.value); }} /></div>
         <ErrorText error={error} />
@@ -37,6 +44,7 @@ export function Customers() {
           { header: "Email", cell: (c: any) => c.user.email },
           { header: "Phone", cell: (c: any) => c.phone ?? "—" },
           { header: "Joined", cell: (c: any) => date(c.createdAt) },
+          { header: "Portal access", cell: (c: any) => (c.user.active ? "Active" : "Inactive") },
         ]} />
         {data && <Pager page={page} limit={data.limit} total={data.total} onPage={setPage} />}
       </Card>
@@ -53,17 +61,22 @@ function EditCustomer({ customer, onDone }: { customer: any; onDone: () => void 
       <Field label="Contact name"><Input name="name" required defaultValue={customer.user.name} /></Field>
       <Field label="Email" hint="Their sign-in, so it can't be changed here."><Input value={customer.user.email} disabled /></Field>
       <Field label="Company" hint="New invoices use the new details. Existing invoices don't change."><Input name="companyName" defaultValue={customer.companyName ?? ""} /></Field>
-      <Field label="Phone"><Input name="phone" defaultValue={customer.phone ?? ""} /></Field>
+      <Field label="Phone"><Input name="phone" {...phoneInput} defaultValue={customer.phone ?? ""} /></Field>
       <div className="md:col-span-2"><Field label="Address"><Input name="address" defaultValue={customer.address ?? ""} /></Field></div>
-      <div className="md:col-span-2"><ErrorText error={save.error} /></div>
-      <div><Button type="submit" disabled={save.isPending}>Save</Button></div>
+      <div className="md:col-span-2"><ErrorText error={readable(save.error)} /></div>
+      <div><Button type="submit" disabled={save.isPending}>{save.isPending ? "Saving…" : "Save"}</Button></div>
     </form>
   );
 }
 
 export function CustomerDetail() {
   const { id } = useParams();
+  const { user } = useAuth();
   const [editing, setEditing] = useState(false);
+  const [notice, setNotice] = useState("");
+  const access = useAction((active: boolean) => api(`/customers/${id}/access`, { method: "PATCH", body: { active } }), (c) =>
+    setNotice(c.user.active ? "Portal access restored." : "Portal access removed. Their records are kept."),
+  );
   const [subPage, setSubPage] = useState(1);
   const [invoicePage, setInvoicePage] = useState(1);
   const { data: customer, error } = useQuery({ queryKey: ["customer", id], queryFn: () => api(`/customers/${id}`) });
@@ -77,13 +90,24 @@ export function CustomerDetail() {
       title={customerName(customer)}
       actions={
         <>
+          {user?.role === "ADMIN" && (
+            <Button
+              variant={customer.user.active ? "danger" : "secondary"}
+              disabled={access.isPending}
+              onClick={() => { if (!customer.user.active || window.confirm(`Deactivate ${customerName(customer)}? They'll be signed out and can't use the portal. Their subscriptions and invoices are kept.`)) access.mutate(!customer.user.active); }}
+            >
+              {customer.user.active ? "Deactivate" : "Reactivate"}
+            </Button>
+          )}
           <Button variant="secondary" onClick={() => setEditing(true)}>Edit details</Button>
           <Link to={`/subscriptions/new${qs({ customer: id, find: customer.user.email })}`} className="rounded-lg bg-[#5b3fe8] px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-[#4c31d6]">New subscription</Link>
         </>
       }
     >
-      {editing && <FormDialog title={`Edit ${customerName(customer)}`} onClose={() => setEditing(false)}><EditCustomer customer={customer} onDone={() => setEditing(false)} /></FormDialog>}
+      {editing && <FormDialog title={`Edit ${customerName(customer)}`} onClose={() => setEditing(false)}><EditCustomer customer={customer} onDone={() => { setEditing(false); setNotice("Details saved."); }} /></FormDialog>}
       <p className="text-sm"><Link className={link} to="/customers">← Customers</Link></p>
+      <ErrorText error={readable(access.error)} />
+      {notice && !access.error && <p role="status" className="text-sm text-slate-700">{notice}</p>}
       <Card>
         <dl className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
           {[

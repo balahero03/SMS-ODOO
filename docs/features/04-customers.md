@@ -9,12 +9,13 @@ The people and companies Brightloop bills.
 | Feature | Status | Note |
 | --- | --- | --- |
 | Create customers | ✅ | Admin and staff |
-| Update customers | 🟡 | API only |
+| Update customers | ✅ | |
+| Deactivate customers | ✅ | Admin only; refused while a subscription is open. Customers are never deleted, so their history stays |
 | Company details | ✅ | Company name and address |
 | Contact information | ✅ | Name, email, phone |
 | Search | ✅ | Name, company or email |
 | Filter by attribute | ⬜ | Search only |
-| Subscription and invoice history | 🟡 | API filters by customer; no customer page yet |
+| Subscription and invoice history | ✅ | On the customer page |
 | Payment history per customer | ⬜ | Payments are shown per invoice or across all customers |
 
 ## Rules
