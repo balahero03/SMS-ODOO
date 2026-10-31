@@ -71,6 +71,11 @@ function EditCustomer({ customer, onDone }: { customer: any; onDone: () => void 
 
 export function CustomerDetail() {
   const { id } = useParams();
+  // The router reuses this page between customers, so the key resets its pages, dialogs and messages.
+  return <CustomerPage key={id} id={id!} />;
+}
+
+function CustomerPage({ id }: { id: string }) {
   const { user } = useAuth();
   const [editing, setEditing] = useState(false);
   const [notice, setNotice] = useState("");
