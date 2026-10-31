@@ -32,13 +32,13 @@ invoicesRoutes.get("/:id", async (req, res) => {
 });
 
 invoicesRoutes.post("/:id/confirm", team, async (req, res) => {
-  res.json(await invoices.confirm(req.user, req.params.id));
+  res.json(await invoices.confirm(req.user, String(req.params.id)));
 });
 
 invoicesRoutes.post("/:id/cancel", team, async (req, res) => {
-  res.json(await invoices.cancel(req.user, req.params.id));
+  res.json(await invoices.cancel(req.user, String(req.params.id)));
 });
 
 invoicesRoutes.post("/:id/send", team, async (req, res) => {
-  res.json(await invoices.send(req.user, req.params.id));
+  res.json(await invoices.send(req.user, String(req.params.id)));
 });

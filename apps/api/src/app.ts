@@ -19,6 +19,8 @@ import { templatesRoutes } from "./modules/quotations/quotation.routes";
 import { usersRoutes } from "./modules/users/user.routes";
 
 export const app = express();
+// Behind one hosting proxy, so rate limiting sees client IPs rather than the proxy's.
+app.set("trust proxy", 1);
 app.use(helmet());
 app.use(cors({ origin: env.WEB_ORIGIN }));
 app.use(express.json({ limit: "100kb" }));

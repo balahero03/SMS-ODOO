@@ -38,6 +38,16 @@ apps/worker/src        separate process that runs billing on a schedule, using t
 apps/web/src/features  React pages, grouped by feature
 ```
 
+## Documentation
+
+- [Features, feature by feature](docs/features/README.md)
+- [System design](docs/system-design.md)
+- [Architecture](docs/architecture.md)
+- [Database design](docs/database-design.md)
+- [API documentation](docs/api-documentation.md)
+- [Billing workflow](docs/billing-workflow.md)
+- [Deployment](docs/deployment.md)
+
 ## Rules worth knowing
 
 **Billing can't double-bill or skip.** Each period is billed in one transaction that locks the

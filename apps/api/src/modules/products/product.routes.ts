@@ -43,7 +43,7 @@ productsRoutes.get("/:id", async (req, res) => {
 productsRoutes.patch("/:id", adminOnly, async (req, res) => {
   res.json(
     await prisma.product.update({
-      where: { id: req.params.id },
+      where: { id: String(req.params.id) },
       data: productSchema.partial().parse(req.body),
       include: { variants: true },
     }),
@@ -52,11 +52,11 @@ productsRoutes.patch("/:id", adminOnly, async (req, res) => {
 
 productsRoutes.post("/:id/variants", adminOnly, async (req, res) => {
   res.status(201).json(
-    await prisma.productVariant.create({ data: { ...variantSchema.parse(req.body), productId: req.params.id } }),
+    await prisma.productVariant.create({ data: { ...variantSchema.parse(req.body), productId: String(req.params.id) } }),
   );
 });
 
 productsRoutes.delete("/:id/variants/:variantId", adminOnly, async (req, res) => {
-  await prisma.productVariant.delete({ where: { id: req.params.variantId, productId: req.params.id } });
+  await prisma.productVariant.delete({ where: { id: String(req.params.variantId), productId: String(req.params.id) } });
   res.status(204).end();
 });

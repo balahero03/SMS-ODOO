@@ -29,11 +29,11 @@ subscriptionRoutes.get("/:id", async (req, res) => {
 });
 
 subscriptionRoutes.put("/:id", team, async (req, res) => {
-  res.json(await subs.updateDraft(req.params.id, updateDraftSchema.parse(req.body)));
+  res.json(await subs.updateDraft(String(req.params.id), updateDraftSchema.parse(req.body)));
 });
 
 subscriptionRoutes.post("/:id/send", team, async (req, res) => {
-  res.json(await subs.sendQuotation(req.user, req.params.id));
+  res.json(await subs.sendQuotation(req.user, String(req.params.id)));
 });
 
 // The rest are open to customers too; subs.* only loads records within the caller's scope.
@@ -42,10 +42,10 @@ subscriptionRoutes.post("/:id/confirm", async (req, res) => {
 });
 
 subscriptionRoutes.post("/:id/activate", team, async (req, res) => {
-  await subs.activate(req.user, req.params.id);
+  await subs.activate(req.user, String(req.params.id));
   // Bill straight away if the first period has already started.
-  await billSubscription(req.params.id, todayUtc());
-  res.json(await subs.get(req.user, req.params.id));
+  await billSubscription(String(req.params.id), todayUtc());
+  res.json(await subs.get(req.user, String(req.params.id)));
 });
 
 subscriptionRoutes.post("/:id/pause", async (req, res) => {
@@ -66,9 +66,9 @@ subscriptionRoutes.post("/:id/close", async (req, res) => {
 
 subscriptionRoutes.post("/:id/discounts", team, async (req, res) => {
   const { discountId } = z.object({ discountId: z.string() }).parse(req.body);
-  res.json(await subs.attachDiscount(req.user, req.params.id, discountId));
+  res.json(await subs.attachDiscount(req.user, String(req.params.id), discountId));
 });
 
 subscriptionRoutes.delete("/:id/discounts/:discountId", team, async (req, res) => {
-  res.json(await subs.detachDiscount(req.user, req.params.id, req.params.discountId));
+  res.json(await subs.detachDiscount(req.user, String(req.params.id), String(req.params.discountId)));
 });

@@ -39,5 +39,5 @@ plansRoutes.patch("/:id", adminOnly, async (req, res) => {
     Object.entries(fields.shape).map(([k, v]) => [k, (v instanceof z.ZodDefault ? v.removeDefault() : v).optional()]),
   ) as { [K in keyof typeof fields.shape]: z.ZodOptional<z.ZodTypeAny> };
   const data = z.object(shape).refine(validDates, message).parse(req.body);
-  res.json(await prisma.plan.update({ where: { id: req.params.id }, data }));
+  res.json(await prisma.plan.update({ where: { id: String(req.params.id) }, data }));
 });

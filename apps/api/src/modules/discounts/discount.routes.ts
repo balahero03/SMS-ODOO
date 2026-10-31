@@ -43,7 +43,7 @@ discountsRoutes.patch("/:id", adminOnly, async (req, res) => {
   const { productIds, ...data } = schema.parse(req.body);
   res.json(
     await prisma.discount.update({
-      where: { id: req.params.id },
+      where: { id: String(req.params.id) },
       data: { ...data, products: { set: productIds.map((id) => ({ id })) } },
       include,
     }),

@@ -23,5 +23,5 @@ taxesRoutes.post("/", adminOnly, async (req, res) => {
 });
 
 taxesRoutes.patch("/:id", adminOnly, async (req, res) => {
-  res.json(await prisma.taxRule.update({ where: { id: req.params.id }, data: schema.partial().parse(req.body) }));
+  res.json(await prisma.taxRule.update({ where: { id: String(req.params.id) }, data: schema.partial().parse(req.body) }));
 });
