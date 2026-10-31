@@ -250,6 +250,14 @@ export async function renew(user: AuthUser, id: string, requested?: Date) {
   return get(user, id);
 }
 
+// Declining is closing a quotation that was never accepted, recorded with its own reason.
+export async function decline(user: AuthUser, id: string) {
+  const sub = await load(user, id);
+  if (sub.status !== "QUOTATION") throw conflict("Only a quotation can be declined");
+  await move(sub, "CLOSED", { closedAt: todayUtc(), closedReason: `Declined by ${user.role.toLowerCase()}` });
+  return get(user, id);
+}
+
 export async function close(user: AuthUser, id: string) {
   const sub = await load(user, id);
   if ((sub.status === "ACTIVE" || sub.status === "PAUSED") && !sub.plan.closable) {
@@ -262,11 +270,19 @@ export async function close(user: AuthUser, id: string) {
 export async function attachDiscount(user: AuthUser, id: string, discountId: string) {
   const sub = await load(user, id);
   if (sub.status === "CLOSED") throw conflict("This subscription is closed");
+  // Billing decides whether a discount actually applies to a period. We only check it exists here.
+  if (!(await prisma.discount.findUnique({ where: { id: discountId }, select: { id: true } }))) throw notFound("Discount");
+  const existing = await prisma.subscriptionDiscount.findUnique({
+    where: { subscriptionId_discountId: { subscriptionId: sub.id, discountId } },
+  });
+  if (existing) throw conflict("That discount is already applied to this subscription");
   await prisma.subscriptionDiscount.create({ data: { subscriptionId: sub.id, discountId } });
   return get(user, id);
 }
 
 export async function detachDiscount(user: AuthUser, id: string, discountId: string) {
-  await prisma.subscriptionDiscount.delete({ where: { subscriptionId_discountId: { subscriptionId: id, discountId } } });
+  const sub = await load(user, id);
+  const { count } = await prisma.subscriptionDiscount.deleteMany({ where: { subscriptionId: sub.id, discountId } });
+  if (!count) throw notFound("Discount on this subscription");
   return get(user, id);
 }

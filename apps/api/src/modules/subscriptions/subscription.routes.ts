@@ -60,6 +60,10 @@ subscriptionRoutes.post("/:id/renew", async (req, res) => {
   res.json(await subs.renew(req.user, req.params.id, renewSchema.parse(req.body ?? {}).expiryDate));
 });
 
+subscriptionRoutes.post("/:id/decline", async (req, res) => {
+  res.json(await subs.decline(req.user, req.params.id));
+});
+
 subscriptionRoutes.post("/:id/close", async (req, res) => {
   res.json(await subs.close(req.user, req.params.id));
 });
