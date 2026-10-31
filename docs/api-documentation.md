@@ -58,10 +58,11 @@ Team can read these. Only the admin can change them.
 
 | Method | Path | Notes |
 | --- | --- | --- |
-| GET, POST | `/products` | `name, type, salesPriceMinor, costPriceMinor, notes?, variants?` |
+| GET, POST | `/products` | List filters `q, type, active`; paginated when `page` or `limit` is given, otherwise returns all matches. Body: `name, type, salesPriceMinor, costPriceMinor, notes?, variants?` |
 | GET, PATCH | `/products/:id` | |
 | POST | `/products/:id/variants` | `attribute, value, extraPriceMinor` |
-| DELETE | `/products/:id/variants/:variantId` | |
+| PATCH | `/products/:id/variants/:variantId` | `attribute?, value?, extraPriceMinor?`; existing subscription lines keep their price |
+| DELETE | `/products/:id/variants/:variantId` | 409 if a subscription line uses the variant |
 | GET, POST | `/plans` | `name, priceMinor, interval, minQuantity, availableFrom, availableUntil?, autoClose, closable, pausable, renewable` |
 | GET, PATCH | `/plans/:id` | |
 | GET, POST | `/taxes` | `name, rateBp, productType?` |

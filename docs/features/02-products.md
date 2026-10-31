@@ -9,7 +9,7 @@ The catalogue of what Brightloop sells, including options that change the price.
 | Feature | Status | Note |
 | --- | --- | --- |
 | Create products | ✅ | Admin only |
-| Update products | 🟡 | API only; the screen has a retire and restore button but no edit form |
+| Update products | ✅ | Edit form, details view, and retire or restore |
 | Delete products | 🟡 | Retired rather than deleted, because old records refer to them |
 | Name and notes | ✅ | Notes also serve as the description |
 | Sales price and cost price | ✅ | |
@@ -24,6 +24,8 @@ The catalogue of what Brightloop sells, including options that change the price.
 
 **Unique variants:** the same attribute and value can't be added twice to one product.
 
+**Removing variants:** a variant used on a subscription can't be removed. Quotation templates using a removed variant fall back to the standard product.
+
 **Retired products** can't be added to new subscriptions. Existing subscriptions keep billing them.
 
 **Tax:** the product type decides which [tax rules](07-billing-and-invoices.md#tax) apply.
@@ -32,8 +34,8 @@ The catalogue of what Brightloop sells, including options that change the price.
 
 ## Screens
 
-Products: list, add product, and add or remove variants.
+Products: list with search, filters and pages; add and edit products; details; add, edit and remove variants.
 
 ## API
 
-`GET|POST /products`, `GET|PATCH /products/:id`, `POST /products/:id/variants`, `DELETE /products/:id/variants/:variantId`
+`GET|POST /products`, `GET|PATCH /products/:id`, `POST /products/:id/variants`, `PATCH|DELETE /products/:id/variants/:variantId`
