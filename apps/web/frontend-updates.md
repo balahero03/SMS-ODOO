@@ -43,6 +43,12 @@ These pages only show real records from the API. They contain no mock data.
 
 **Backend needed:** the request pages depend on `GET /catalog`, `POST /subscriptions/request`, `requested=true` on the subscription list, and `requestedAt` and `requestNote` on subscriptions. Until those exist, Browse plans shows "Plans can't be loaded right now", and Customer requests lists every draft.
 
+### Admin and staff screens
+
+Admin and staff use the same sidebar as the customer portal, and shared buttons, cards and badges in `src/components/ui` follow the same style. The dashboard in `src/features/dashboard/pages/Dashboard.tsx` now opens with a "Needs your attention" task list.
+
+Products, Plans, Quotation templates, Discounts and Taxes are **admin only in the app**. They're gone from the staff menu, and opening those URLs as staff goes to the dashboard. The API still lets staff read this data, because the New subscription and discount dropdowns need it.
+
 ## How routing works
 
 `src/app/App.tsx` is the only existing file the portal changes. A small `ByRole` wrapper picks the screen, so `/subscriptions` shows the customer page to customers and the team page to everyone else. Customers land on `/overview` after signing in. Team users who open `/overview` go to the dashboard.

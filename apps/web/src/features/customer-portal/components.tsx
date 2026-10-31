@@ -14,7 +14,14 @@ export const prettyDate = (value?: string | null) =>
 
 export const isOverdue = (i: any) => i.status === "CONFIRMED" && i.dueDate.slice(0, 10) < today();
 
-const ICONS = {
+export const ICONS = {
+  inbox: "M3 13l3-8h12l3 8v6H3v-6ZM3 13h5l1 3h6l1-3h5",
+  users: "M9 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM2 21a7 7 0 0 1 14 0M17 4a4 4 0 0 1 0 8M19 15a6 6 0 0 1 3 6",
+  layers: "m12 3 9 5-9 5-9-5 9-5ZM3 13l9 5 9-5",
+  template: "M5 3h14v18H5V3ZM9 8h6M9 12h6M9 16h3",
+  tag: "M3 12V3h9l9 9-9 9-9-9ZM8 8h.01",
+  percent: "M19 5 5 19M7 9a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z",
+  team: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM5 21a7 7 0 0 1 14 0",
   home: "m3 11 9-8 9 8v10h-6v-6H9v6H3V11Z",
   box: "m12 3 8 4.500v9L12 21l-8-4.500v-9L12 3ZM4 7.500l8 4.500 8-4.500M12 12v9",
   repeat: "M4 11a8 8 0 0 1 14-4l2 2M20 4v5h-5M20 13a8 8 0 0 1-14 4l-2-2M4 20v-5h5",
@@ -50,7 +57,10 @@ const NAV = [
   { to: "/payments", label: "Payments", icon: ICONS.card },
 ];
 
-export function CustomerShell() {
+export const CustomerShell = () => <AppShell items={NAV} />;
+
+/** The sidebar layout shared by the customer portal and the team's screens. */
+export function AppShell({ items, wide }: { items: { to: string; label: string; icon: string }[]; wide?: boolean }) {
   const { user, signOut } = useAuth();
   return (
     <div className="min-h-screen bg-[#fbf8f1] font-['Plus_Jakarta_Sans',sans-serif] text-slate-900 md:flex print:bg-white">
@@ -61,8 +71,8 @@ export function CustomerShell() {
           <Logo />
           <button type="button" className="text-sm font-semibold text-[#5b3fe8] md:hidden" onClick={signOut}>Sign out</button>
         </div>
-        <nav aria-label="Customer portal" className="flex gap-1 overflow-x-auto px-3 pb-3 md:flex-1 md:flex-col md:pb-0">
-          {NAV.map((n) => (
+        <nav aria-label="Main" className="flex gap-1 overflow-x-auto px-3 pb-3 md:min-h-0 md:flex-1 md:flex-col md:overflow-y-auto md:pb-0">
+          {items.map((n) => (
             <NavLink
               key={n.to}
               to={n.to}
@@ -80,7 +90,7 @@ export function CustomerShell() {
         </div>
       </aside>
       <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8">
-        <div className="mx-auto max-w-5xl"><Outlet /></div>
+        <div className={`mx-auto ${wide ? "max-w-7xl" : "max-w-5xl"}`}><Outlet /></div>
       </main>
     </div>
   );
