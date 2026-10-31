@@ -9,7 +9,7 @@ A plan sets how often a subscription bills, when it's available, and what can ha
 | Feature | Status | Note |
 | --- | --- | --- |
 | Create plans | ✅ | Admin only |
-| Update plans | 🟡 | API only |
+| Update plans | ✅ | Edit form, details view, and retire or restore |
 | Daily, weekly, monthly and yearly billing | ✅ | |
 | Plan pricing | ✅ | A fee per billing period; can be zero |
 | Minimum quantity | ✅ | |
@@ -19,7 +19,9 @@ A plan sets how often a subscription bills, when it's available, and what can ha
 
 ## Rules
 
-**Plan fee:** charged each period on top of the product lines. Use 0 for pure per-seat pricing.
+**Plan fee:** charged each period on top of the product lines. Use 0 for pure per-seat pricing.  A new fee applies from the next invoice; issued invoices never change.
+
+**Billing interval:** fixed once a plan exists, because billing dates are worked out from it. Create a new plan instead.
 
 **Minimum quantity:** every product line on a subscription must meet it.
 
@@ -38,8 +40,8 @@ The server enforces these options, so hiding a button isn't the only protection.
 
 ## Screens
 
-Plans: list and add plan.
+Plans: list with search, filters and pages; add and edit plans; details.
 
 ## API
 
-`GET|POST /plans`, `PATCH /plans/:id`
+`GET|POST /plans`, `GET|PATCH /plans/:id`
